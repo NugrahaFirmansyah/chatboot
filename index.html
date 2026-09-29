@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Aplikasi Chatbot Cerdas dan Ramah berbasis Google Gemini API dengan dukungan input suara, analisis gambar, dan riwayat percakapan.">
+  <title>Xmans - Sahabat Cerdas & Ramah</title>
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="assets/images/logo.png">
+
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="assets/css/style.css">
+
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+  <!-- Highlight.js for Code Highlighting -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+</head>
+<body>
+
+  <div class="app-container">
+
+    <!-- Mobile Sidebar Overlay Backdrop -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- ====================================================================
+         Sidebar: Chat History & Management
+         ==================================================================== -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="brand">
+          <div class="brand-logo-wrapper">
+            <img src="assets/images/logo.png" alt="Xmans Logo" class="brand-logo-img">
+          </div>
+          <div class="brand-info">
+            <h1>Xmans</h1>
+            <span>Asisten AI Ramah</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- New Chat Button -->
+      <button class="btn-new-chat" id="newChatBtn">
+        <i class="fa-solid fa-plus"></i>
+        <span>Obrolan Baru</span>
+      </button>
+
+      <!-- Chat History List -->
+      <div class="chat-history-container">
+        <div class="history-label">Riwayat Percakapan</div>
+        <ul class="chat-list" id="chatList">
+          <!-- Populated by JavaScript -->
+        </ul>
+      </div>
+
+      <!-- Sidebar Footer -->
+      <div class="sidebar-footer">
+        <div class="user-profile-badge">
+          <div class="status-dot" title="Gemini Online"></div>
+          <span style="font-size: 13px; font-weight: 600;">Status: Siap</span>
+        </div>
+        <div class="sidebar-footer-actions">
+          <button class="footer-btn" id="exportChatBtn" title="Unduh Percakapan (Markdown)">
+            <i class="fa-solid fa-download"></i>
+          </button>
+          <button class="footer-btn" id="themeToggleBtn" title="Ganti Tema (Gelap/Terang)">
+            <i class="fa-solid fa-sun"></i>
+          </button>
+          <button class="footer-btn" id="settingsBtn" title="Pengaturan & API Key">
+            <i class="fa-solid fa-gear"></i>
+          </button>
+          <button class="footer-btn" id="clearAllChatsBtn" title="Hapus Semua Riwayat">
+            <i class="fa-regular fa-trash-can"></i>
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ====================================================================
+         Main Chat Section
+         ==================================================================== -->
+    <main class="main-chat">
+
+      <!-- Floating Mobile Sidebar Toggle Button -->
+      <button class="btn-floating-sidebar" id="sidebarToggleBtn" aria-label="Buka Menu">
+        <i class="fa-solid fa-bars"></i>
+      </button>
+
+      <!-- Message History Container -->
+      <section class="chat-messages" id="chatMessages">
+
+        <!-- Friendly Welcome Screen (Visible on empty chat) -->
+        <div class="welcome-screen" id="welcomeScreen">
+          <div class="welcome-avatar">
+            <img src="assets/images/logo.png" alt="Xmans Avatar" class="welcome-logo-img">
+          </div>
+          <h2>Halo! Ada yang bisa saya bantu hari ini?</h2>
+          <p>Saya adalah asisten AI ramah yang ditenagai oleh Xmans. Anda bisa bertanya apa saja, berdiskusi, menganalisis gambar, atau meminta bantuan tugas.</p>
+
+          <div class="suggestion-grid">
+            <div class="suggestion-card" data-prompt="Buatkan ide konten media sosial yang menarik dan kreatif untuk mempromosikan produk kopi lokal.">
+              <div class="suggestion-icon">💡</div>
+              <div class="suggestion-title">Ide Konten Kreatif</div>
+              <div class="suggestion-desc">Ide promosi kopi lokal untuk media sosial</div>
+            </div>
+
+            <div class="suggestion-card" data-prompt="Jelaskan bagaimana cara kerja kecerdasan buatan (AI) secara sederhana untuk pemula.">
+              <div class="suggestion-icon">🧠</div>
+              <div class="suggestion-title">Jelaskan Konsep</div>
+              <div class="suggestion-desc">Cara kerja AI secara ramah & mudah dimengerti</div>
+            </div>
+
+            <div class="suggestion-card" data-prompt="Buatkan fungsi JavaScript modern untuk memformat tanggal ke format lokal Indonesia (contoh: 5 September 2026).">
+              <div class="suggestion-icon">💻</div>
+              <div class="suggestion-title">Bantuan Koding</div>
+              <div class="suggestion-desc">Format tanggal lokal Indonesia di JavaScript</div>
+            </div>
+
+            <div class="suggestion-card" data-prompt="Tolong buatkan draf email permohonan izin cuti tahunan kepada atasan dengan bahasa yang sopan dan profesional.">
+              <div class="suggestion-icon">✉️</div>
+              <div class="suggestion-title">Tulis Draf Email</div>
+              <div class="suggestion-desc">Permohonan cuti kerja yang sopan & profesional</div>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- Chat Input Area (Floating & Responsive) -->
+      <footer class="chat-input-area">
+        <div class="input-container">
+
+          <!-- Staged Image Attachment Thumbnail -->
+          <div class="staged-attachment" id="stagedAttachment">
+            <img id="stagedThumb" class="staged-img-thumb" src="" alt="Thumbnail">
+            <span id="stagedName" class="staged-info">foto.jpg</span>
+            <button class="btn-remove-attachment" id="removeAttachmentBtn" title="Hapus Gambar">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+          </div>
+
+          <!-- Input Row -->
+          <div class="input-row">
+            <textarea 
+              class="chat-textarea" 
+              id="chatTextarea" 
+              rows="1" 
+              placeholder="Ketik pesan Anda di sini... (Shift + Enter untuk baris baru)"
+            ></textarea>
+
+            <div class="input-actions">
+              <!-- Hidden File Input for Multimodal Image Upload -->
+              <input type="file" id="fileInput" accept="image/png, image/jpeg, image/webp" style="display: none;">
+
+              <button class="btn-input-action" id="attachBtn" title="Lampirkan Gambar untuk Dianalisis">
+                <i class="fa-solid fa-paperclip"></i>
+              </button>
+
+              <button class="btn-input-action" id="micBtn" title="Input Suara (Bicara)">
+                <i class="fa-solid fa-microphone"></i>
+              </button>
+
+              <button class="btn-send" id="sendBtn" title="Kirim Pesan">
+                <i class="fa-solid fa-paper-plane"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="input-disclaimer">
+          Xmans AI dapat membuat kekeliruan. Selalu verifikasi informasi penting.
+        </div>
+      </footer>
+
+    </main>
+
+  </div>
+
+  <!-- ====================================================================
+       Settings Modal
+       ==================================================================== -->
+  <div class="modal-overlay" id="settingsModal">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-sliders"></i> Pengaturan Chatbot</h3>
+        <button class="btn-close-modal" id="closeSettingsBtn">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="apiKeyInput">
+            Gemini API Key
+            <button type="button" class="btn-secondary" id="testApiBtn" style="padding: 4px 8px; font-size: 11px;">
+              <i class="fa-solid fa-bolt"></i> Uji Koneksi
+            </button>
+          </label>
+          <input 
+            type="password" 
+            id="apiKeyInput" 
+            class="form-input" 
+            placeholder="Masukkan Gemini API Key (AIzaSy...)"
+          >
+          <div class="form-hint">
+            Dapatkan API Key secara gratis di 
+            <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer">
+              Google AI Studio <i class="fa-solid fa-arrow-up-right-from-square"></i>
+            </a>. Kunci disimpan aman di browser lokal Anda.
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="modelSelect">Pilihan Model Gemini</label>
+          <select id="modelSelect" class="form-select">
+            <option value="gemini-3.7-flash" selected>Gemini 3.7 Flash (Direkomendasikan - Paling Cerdas & Lengkap)</option>
+            <option value="gemini-3.5-flash-lite">Gemini 3.5 Flash Lite (Sangat Cepat & Ringan)</option>
+            <option value="gemini-3.1-pro-preview">Gemini 3.1 Pro (Penalaran Kompleks)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="systemInstructionInput">Karakter & Instruksi Sistem (System Prompt)</label>
+          <textarea 
+            id="systemInstructionInput" 
+            class="form-textarea" 
+            rows="3" 
+            placeholder="Atur kepribadian bot, contoh: Kamu adalah asisten ramah berbahasa Indonesia..."
+          ></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="temperatureInput">
+            Tingkat Kreativitas (Temperature): <span id="tempValueDisplay">0.7</span>
+          </label>
+          <input 
+            type="range" 
+            id="temperatureInput" 
+            min="0.0" 
+            max="1.0" 
+            step="0.05" 
+            value="0.7"
+            style="width: 100%; accent-color: var(--accent-primary); cursor: pointer;"
+          >
+          <div class="form-hint" style="display: flex; justify-content: space-between;">
+            <span>0.0 (Presisi/Faktual)</span>
+            <span>1.0 (Kreatif)</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-primary" id="saveSettingsBtn">
+          <i class="fa-solid fa-floppy-disk"></i> Simpan Pengaturan
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- JavaScript Libraries -->
+  <!-- Marked for Markdown Parsing -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <!-- Highlight.js for Code Highlighting -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+
+  <!-- Application Logic -->
+  <script src="assets/js/app.js"></script>
+</body>
+</html>

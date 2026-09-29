@@ -1,0 +1,86 @@
+# ============================================================
+# Apache Security Configuration untuk Xmans Chatbot
+# ============================================================
+
+# Cegah akses langsung ke file sensitif
+<FilesMatch "^\.env|\.env\.example|config\.php|config\.example\.php$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order Allow,Deny
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+# Cegah akses ke folder lib/ dan storage/
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    
+    # Blokir akses langsung ke folder lib/
+    RewriteRule ^lib/ - [F,L]
+    
+    # Blokir akses langsung ke folder storage/
+    RewriteRule ^storage/ - [F,L]
+</IfModule>
+
+# Cegah directory listing
+Options -Indexes
+
+# Nonaktifkan signature server
+ServerSignature Off
+
+# Security Headers (tambahan untuk non-PHP files)
+<IfModule mod_headers.c>
+    # Cegah MIME type sniffing
+    Header set X-Content-Type-Options "nosniff"
+    
+    # Cegah clickjacking
+    Header set X-Frame-Options "DENY"
+    
+    # Aktifkan XSS protection di browser lama
+    Header set X-XSS-Protection "1; mode=block"
+    
+    # Referrer policy
+    Header set Referrer-Policy "strict-origin-when-cross-origin"
+    
+    # Hapus header yang mengekspos info server
+    Header unset X-Powered-By
+    Header unset Server
+</IfModule>
+
+# Cegah akses ke file backup/hidden
+<FilesMatch "(\.(bak|backup|old|save|orig|swp|swo|tmp|log|sql)|~)$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order Allow,Deny
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+# Cegah akses ke file README dan markdown
+<FilesMatch "\.(md|markdown)$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order Allow,Deny
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+# Limit upload size (2MB)
+<IfModule mod_php.c>
+    php_value upload_max_filesize 2M
+    php_value post_max_size 3M
+    php_value max_execution_time 45
+    php_value max_input_time 30
+    
+    # Sembunyikan versi PHP
+    php_flag expose_php off
+    
+    # Nonaktifkan fungsi berbahaya
+    php_value disable_functions "exec,passthru,shell_exec,system,proc_open,popen"
+</IfModule>

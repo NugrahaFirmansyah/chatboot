@@ -1,0 +1,39 @@
+# ============================================================
+# Xmans Chatbot - Git Ignore
+# ============================================================
+
+# Environment files (WAJIB!)
+.env
+!.env.example
+
+# Storage (rate limit data, logs, dll)
+storage/
+storage/rate_limits/
+
+# PHP config yang mengandung secrets
+config.php
+!config.example.php
+
+# IDE & Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
+*.log
+error_log
+
+# Backup files
+*.bak
+*.backup
+*.old
+*.orig
+*.save
+*.tmp
